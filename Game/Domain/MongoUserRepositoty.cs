@@ -15,31 +15,46 @@ namespace Game.Domain
 
         public UserEntity Insert(UserEntity user)
         {
-            //TODO: Ищи в документации InsertXXX.
-            throw new NotImplementedException();
+            userCollection.InsertOne(user);
+            return user;
         }
 
         public UserEntity FindById(Guid id)
         {
-            //TODO: Ищи в документации FindXXX
-            throw new NotImplementedException();
+            return userCollection
+                .Find(x => x.Id == id)
+                .FirstOrDefault();
         }
 
         public UserEntity GetOrCreateByLogin(string login)
         {
-            //TODO: Это Find или Insert
-            throw new NotImplementedException();
+            var user = FindByLogin(login);
+            if (user != null)
+            {
+                return user;
+            }
+            user = new UserEntity();
+            user.Login = login;
+            return Insert(user);
+        }
+
+        private UserEntity FindByLogin(string login)
+        {
+            return userCollection
+                .Find(x => x.Login == login)
+                .FirstOrDefault();
         }
 
         public void Update(UserEntity user)
         {
-            //TODO: Ищи в документации ReplaceXXX
-            throw new NotImplementedException();
+            var filter = Builders<UserEntity>.Filter.Eq(u => u.Id, user.Id);
+            userCollection.ReplaceOne(filter, user);
         }
 
         public void Delete(Guid id)
         {
-            throw new NotImplementedException();
+            var filter = Builders<UserEntity>.Filter.Eq(u => u.Id, id);
+            userCollection.DeleteOne(filter);
         }
 
         // Для вывода списка всех пользователей (упорядоченных по логину)

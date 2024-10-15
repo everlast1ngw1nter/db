@@ -61,8 +61,15 @@ namespace Game.Domain
         // страницы нумеруются с единицы
         public PageList<UserEntity> GetPage(int pageNumber, int pageSize)
         {
-            //TODO: Тебе понадобятся SortBy, Skip и Limit
-            throw new NotImplementedException();
+            var users = userCollection
+                .Find(_ => true)
+                .SortBy(u => u.Login)
+                .Skip((pageNumber - 1) * pageSize) 
+                .Limit(pageSize) 
+                .ToList();
+
+            var totalCount = userCollection.CountDocuments(_ => true);
+            return new PageList<UserEntity>(users, totalCount, pageNumber, pageSize);
         }
 
         // Не нужно реализовывать этот метод

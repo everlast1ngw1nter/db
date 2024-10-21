@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Game.Domain
@@ -7,10 +8,15 @@ namespace Game.Domain
     {
         private readonly IMongoCollection<UserEntity> userCollection;
         public const string CollectionName = "users";
+        private bool isAlreadyUse = false;
 
         public MongoUserRepository(IMongoDatabase database)
         {
             userCollection = database.GetCollection<UserEntity>(CollectionName);
+            var indexKeys = Builders<UserEntity>.IndexKeys.Ascending(u => u.Login); 
+            var indexOptions = new CreateIndexOptions { Unique = true };
+            var indexModel = new CreateIndexModel<UserEntity>(indexKeys, indexOptions); 
+            userCollection.Indexes.CreateOne(indexModel);
         }
 
         public UserEntity Insert(UserEntity user)
@@ -28,14 +34,19 @@ namespace Game.Domain
 
         public UserEntity GetOrCreateByLogin(string login)
         {
+            while (isAlreadyUse){}
+            isAlreadyUse = true;
             var user = FindByLogin(login);
             if (user != null)
             {
+                isAlreadyUse = false;
                 return user;
             }
             user = new UserEntity();
             user.Login = login;
-            return Insert(user);
+            var result = Insert(user);
+            isAlreadyUse = false;
+            return result;
         }
 
         private UserEntity FindByLogin(string login)

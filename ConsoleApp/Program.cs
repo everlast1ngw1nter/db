@@ -5,6 +5,16 @@ using MongoDB.Driver;
 
 namespace ConsoleApp
 {
+    public static class MongoDatabase
+    {
+        public static IMongoDatabase Create()
+        {
+            var mongoConnectionString = Environment.GetEnvironmentVariable("PROJECT5100_MONGO_CONNECTION_STRING")
+                                        ?? "mongodb://localhost:27017?maxConnecting=100";
+            var mongoClient = new MongoClient(mongoConnectionString);
+            return mongoClient.GetDatabase("game-tests");
+        }
+    }
     class Program
     {
         private readonly IUserRepository userRepo;
@@ -13,16 +23,10 @@ namespace ConsoleApp
 
         private Program(string[] args)
         {
-            userRepo = new MongoUserRepository(Create("users"));
-            gameRepo = new MongoGameRepository(Create("users"));
-        }
-        
-        public static IMongoDatabase Create(string databaseName)
-        {
-            var mongoConnectionString = Environment.GetEnvironmentVariable("PROJECT5100_MONGO_CONNECTION_STRING")
-                                        ?? "mongodb://localhost:27017?maxConnecting=100";
-            var mongoClient = new MongoClient(mongoConnectionString);
-            return mongoClient.GetDatabase(databaseName);
+            var dbUser = MongoDatabase.Create();
+            userRepo = new MongoUserRepository(dbUser);
+            var dbGame = MongoDatabase.Create();
+            gameRepo = new MongoGameRepository(dbGame);
         }
 
         public static void Main(string[] args)
